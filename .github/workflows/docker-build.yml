@@ -1,0 +1,246 @@
+name: "Build Multi-Arch Images"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cargoLeptosVersion:
+        description: "cargo-leptos version"
+        required: true
+
+jobs:
+  image-info:
+    name: "Extract image info"
+    runs-on: "ubuntu-latest"
+    outputs:
+      repo: ${{ steps.derive.outputs.repo }}
+      version: ${{ steps.derive.outputs.version }}
+
+    env:
+      DOCKER_REPOSITORY: "starknet/firestark"
+
+    steps:
+      - id: "derive"
+        name: "Derive image info from workflow input"
+        run: |
+          INPUT_VERSION="${{ github.event.inputs.cargoLeptosVersion }}"
+          NORMALIZED_VERSION="${INPUT_VERSION#v}"
+
+          echo "repo=xjonathanlei/cargo-leptos" >> $GITHUB_OUTPUT
+          echo "version=${NORMALIZED_VERSION}" >> $GITHUB_OUTPUT
+
+  build:
+    name: "Build for ${{ matrix.base }}-${{ matrix.platform.tag }}"
+    runs-on: "ubuntu-latest"
+    needs:
+      - "image-info"
+
+    strategy:
+      matrix:
+        base:
+          - "bullseye"
+          - "slim-bullseye"
+          - "bookworm"
+          - "slim-bookworm"
+          - "alpine3.20"
+          - "alpine3.21"
+        platform:
+          - tag: "amd64"
+            fullName: "linux/amd64"
+          - tag: "arm64"
+            fullName: "linux/arm64/v8"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Set up Docker Buildx"
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          sudo systemctl restart docker
+          docker buildx create --name multi_builder
+          docker buildx use multi_builder
+
+      - name: "Build Docker image"
+        run: |
+          docker buildx build \
+            --platform "${{ matrix.platform.fullName }}" \
+            --output=type=docker \
+            --build-arg "CARGO_LEPTOS_VERSION=${{ needs.image-info.outputs.version }}" \
+            -t ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-${{ matrix.base }}-${{ matrix.platform.tag }} \
+            -f ./Dockerfile.${{ matrix.base }} \
+            .
+
+      - name: "Export Docker image"
+        run: |
+          docker save ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-${{ matrix.base }}-${{ matrix.platform.tag }} \
+            | gzip > /tmp/${{ matrix.base }}-${{ matrix.platform.tag }}.tar.gz
+
+      - name: "Upload Docker image artifact"
+        uses: "actions/upload-artifact@v3"
+        with:
+          name: "${{ matrix.base }}-${{ matrix.platform.tag }}.tar.gz"
+          path: "/tmp/${{ matrix.base }}-${{ matrix.platform.tag }}.tar.gz"
+
+  push:
+    name: "Push images and manifests"
+    runs-on: "ubuntu-latest"
+    needs:
+      - "image-info"
+      - "build"
+
+    steps:
+      - name: "Download bullseye-amd64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "bullseye-amd64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download bullseye-arm64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "bullseye-arm64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download slim-bullseye-amd64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "slim-bullseye-amd64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download slim-bullseye-arm64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "slim-bullseye-arm64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download bookworm-amd64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "bookworm-amd64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download bookworm-arm64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "bookworm-arm64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download slim-bookworm-amd64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "slim-bookworm-amd64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download slim-bookworm-arm64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "slim-bookworm-arm64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download alpine3.20-amd64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "alpine3.20-amd64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download alpine3.20-arm64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "alpine3.20-arm64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download alpine3.21-amd64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "alpine3.21-amd64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Download alpine3.21-arm64 image"
+        uses: "actions/download-artifact@v3"
+        with:
+          name: "alpine3.21-arm64.tar.gz"
+          path: "/tmp/"
+
+      - name: "Load Docker images"
+        run: |
+          docker load < /tmp/bullseye-amd64.tar.gz
+          docker load < /tmp/bullseye-arm64.tar.gz
+          docker load < /tmp/slim-bullseye-amd64.tar.gz
+          docker load < /tmp/slim-bullseye-arm64.tar.gz
+          docker load < /tmp/bookworm-amd64.tar.gz
+          docker load < /tmp/bookworm-arm64.tar.gz
+          docker load < /tmp/slim-bookworm-amd64.tar.gz
+          docker load < /tmp/slim-bookworm-arm64.tar.gz
+          docker load < /tmp/alpine3.20-amd64.tar.gz
+          docker load < /tmp/alpine3.20-arm64.tar.gz
+          docker load < /tmp/alpine3.21-amd64.tar.gz
+          docker load < /tmp/alpine3.21-arm64.tar.gz
+
+      - name: "Login to Docker Hub"
+        uses: "docker/login-action@v1.6.0"
+        with:
+          username: "${{ secrets.DOCKER_HUB_USERNAME }}"
+          password: "${{ secrets.DOCKER_HUB_PASSWORD }}"
+
+      - name: "Push individual Docker images"
+        run: |
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye-amd64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye-arm64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye-amd64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye-arm64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-amd64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-arm64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20-amd64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20-arm64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64
+          docker push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
+
+      - name: "Create manifests"
+        run: |
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
+
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }} \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
+
+          docker manifest create ${{ needs.image-info.outputs.repo }}:latest \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
+
+      - name: "Push manifests"
+        run: |
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine
+          docker manifest push ${{ needs.image-info.outputs.repo }}:latest

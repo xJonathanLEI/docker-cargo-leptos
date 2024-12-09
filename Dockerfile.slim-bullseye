@@ -1,0 +1,14 @@
+FROM rust:slim-bullseye AS build
+
+ARG CARGO_LEPTOS_VERSION
+
+WORKDIR /output
+RUN cargo install --locked --root /output --version $CARGO_LEPTOS_VERSION cargo-leptos
+
+FROM debian:bullseye-slim
+
+LABEL org.opencontainers.image.source=https://github.com/xJonathanLEI/docker-cargo-leptos
+
+COPY --from=build /output/bin/cargo-leptos /usr/bin/
+
+ENTRYPOINT [ "/usr/bin/cargo-leptos" ]
