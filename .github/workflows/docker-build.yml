@@ -218,9 +218,6 @@ jobs:
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64 \
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
 
-          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }} \
-            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
-            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
           docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim \
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-amd64 \
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-arm64
@@ -228,6 +225,35 @@ jobs:
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64 \
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
 
+          docker manifest create ${{ needs.image-info.outputs.repo }}:bullseye \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bullseye-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:slim-bullseye \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bullseye-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:bookworm \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:slim-bookworm \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:alpine3.20 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:alpine3.21 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
+
+          docker manifest create ${{ needs.image-info.outputs.repo }}:slim \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm-arm64
+          docker manifest create ${{ needs.image-info.outputs.repo }}:alpine \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21-arm64
+
+          docker manifest create ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }} \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
+            ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
           docker manifest create ${{ needs.image-info.outputs.repo }}:latest \
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-amd64 \
             ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-bookworm-arm64
@@ -242,5 +268,13 @@ jobs:
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine
+          docker manifest push ${{ needs.image-info.outputs.repo }}:bullseye
+          docker manifest push ${{ needs.image-info.outputs.repo }}:slim-bullseye
+          docker manifest push ${{ needs.image-info.outputs.repo }}:bookworm
+          docker manifest push ${{ needs.image-info.outputs.repo }}:slim-bookworm
+          docker manifest push ${{ needs.image-info.outputs.repo }}:alpine3.20
+          docker manifest push ${{ needs.image-info.outputs.repo }}:alpine3.21
+          docker manifest push ${{ needs.image-info.outputs.repo }}:slim
+          docker manifest push ${{ needs.image-info.outputs.repo }}:alpine
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}
           docker manifest push ${{ needs.image-info.outputs.repo }}:latest
