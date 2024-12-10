@@ -240,7 +240,7 @@ jobs:
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim-bookworm
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.20
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine3.21
-          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-slim
           docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}-alpine
+          docker manifest push ${{ needs.image-info.outputs.repo }}:${{ needs.image-info.outputs.version }}
           docker manifest push ${{ needs.image-info.outputs.repo }}:latest
