@@ -77,7 +77,7 @@ jobs:
             | gzip > /tmp/${{ matrix.base }}-${{ matrix.platform.tag }}.tar.gz
 
       - name: "Upload Docker image artifact"
-        uses: "actions/upload-artifact@v3"
+        uses: "actions/upload-artifact@v4"
         with:
           name: "${{ matrix.base }}-${{ matrix.platform.tag }}.tar.gz"
           path: "/tmp/${{ matrix.base }}-${{ matrix.platform.tag }}.tar.gz"
@@ -91,85 +91,85 @@ jobs:
 
     steps:
       - name: "Download bullseye-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "bullseye-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download bullseye-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "bullseye-arm64.tar.gz"
           path: "/tmp/"
 
       - name: "Download slim-bullseye-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "slim-bullseye-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download slim-bullseye-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "slim-bullseye-arm64.tar.gz"
           path: "/tmp/"
 
       - name: "Download bookworm-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "bookworm-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download bookworm-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "bookworm-arm64.tar.gz"
           path: "/tmp/"
 
       - name: "Download slim-bookworm-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "slim-bookworm-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download slim-bookworm-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "slim-bookworm-arm64.tar.gz"
           path: "/tmp/"
 
       - name: "Download alpine3.20-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "alpine3.20-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download alpine3.20-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "alpine3.20-arm64.tar.gz"
           path: "/tmp/"
 
       - name: "Download alpine3.21-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "alpine3.21-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download alpine3.21-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "alpine3.21-arm64.tar.gz"
           path: "/tmp/"
 
       - name: "Download alpine3.22-amd64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "alpine3.22-amd64.tar.gz"
           path: "/tmp/"
 
       - name: "Download alpine3.22-arm64 image"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
         with:
           name: "alpine3.22-arm64.tar.gz"
           path: "/tmp/"
